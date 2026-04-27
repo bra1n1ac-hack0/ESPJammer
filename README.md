@@ -3,8 +3,8 @@
 ESP32 pentesting tool firmware with OLED menu UI, WiFi scanning, packet sniffing, and BLE modules.
 
 ## Web Flasher
-Flash directly from your browser — no installs needed:
-> https://YOURUSERNAME.github.io/ESPJammer
+Flash directly from your browser,  no installs needed:
+> https://bra1n1ac-hack0.github.io/ESPJammer/
 
 ## Features
 - Scrollable OLED menu system
