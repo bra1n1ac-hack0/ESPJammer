@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ESPJAMMER — Web Flasher</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@700;900&display=swap" rel="stylesheet"/>
+  <script type="module" src="https://unpkg.com/esp-web-tools@9/dist/web/install-button.js?module"></script>
+  <style>
+    :root {
+      --purple:      #b44fff;
+      --purple-dim:  #7a2db5;
+      --purple-glow: rgba(180,79,255,0.35);
+      --bg:          #07010f;
+      --surface:     #0f0520;
+      --border:      #2a1040;
+      --text:        #c97eff;
+      --text-dim:    #7a4fa0;
+      --text-muted:  #3d2060;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Share Tech Mono', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 20px 60px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(180,79,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(180,79,255,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 600px;
+      background: radial-gradient(ellipse, rgba(130,30,200,0.18) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 640px;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 48px;
+      animation: fadeDown 0.7s ease both;
+    }
+
+    .logo {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: clamp(2.8rem, 10vw, 4.5rem);
+      letter-spacing: 6px;
+      color: var(--purple);
+      text-shadow: 0 0 30px var(--purple-glow), 0 0 80px rgba(180,79,255,0.2);
+      line-height: 1;
+      margin-bottom: 10px;
+      animation: flicker 6s infinite;
+    }
+
+    .tagline {
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      letter-spacing: 5px;
+      text-transform: uppercase;
+    }
+
+    .version-badge {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 4px 14px;
+      border: 1px solid var(--purple-dim);
+      border-radius: 20px;
+      font-size: 0.72rem;
+      color: var(--purple-dim);
+      letter-spacing: 3px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 20px;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .card:nth-child(2) { animation-delay: 0.1s; }
+    .card:nth-child(3) { animation-delay: 0.2s; }
+    .card:nth-child(4) { animation-delay: 0.3s; }
+
+    .card-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 4px;
+      color: var(--purple-dim);
+      text-transform: uppercase;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .step {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 18px;
+      align-items: flex-start;
+    }
+
+    .step:last-of-type { margin-bottom: 0; }
+
+    .step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: 1px solid var(--purple-dim);
+      color: var(--purple);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 0 10px rgba(180,79,255,0.15);
+    }
+
+    .step-text {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      line-height: 1.7;
+      padding-top: 4px;
+    }
+
+    .step-text strong { color: var(--text); font-weight: normal; }
+
+    .flash-wrap {
+      margin-top: 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    esp-web-install-button::part(button) {
+      background: transparent;
+      color: var(--purple);
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 4px;
+      padding: 14px 48px;
+      border: 1px solid var(--purple);
+      border-radius: 6px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.25s ease;
+      box-shadow: 0 0 20px rgba(180,79,255,0.2), inset 0 0 20px rgba(180,79,255,0.04);
+    }
+
+    esp-web-install-button::part(button):hover {
+      background: rgba(180,79,255,0.1);
+      box-shadow: 0 0 40px rgba(180,79,255,0.5), inset 0 0 20px rgba(180,79,255,0.08);
+      transform: translateY(-2px);
+    }
+
+    .browser-note {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+    }
+
+    .no-serial {
+      display: none;
+      color: #ff6060;
+      font-size: 0.8rem;
+      text-align: center;
+      padding: 12px 16px;
+      border: 1px solid rgba(255,60,60,0.3);
+      border-radius: 6px;
+      background: rgba(255,60,60,0.05);
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .feature {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .feature:hover { border-color: var(--purple-dim); color: var(--text); }
+
+    .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--purple-dim);
+      flex-shrink: 0;
+      box-shadow: 0 0 6px var(--purple-glow);
+    }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+
+    th {
+      text-align: left;
+      color: var(--purple-dim);
+      font-weight: normal;
+      letter-spacing: 2px;
+      font-size: 0.72rem;
+      padding: 0 0 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 8px 0;
+      color: var(--text-dim);
+      border-bottom: 1px solid rgba(42,16,64,0.5);
+    }
+
+    td:last-child { color: var(--purple); }
+    tr:last-child td { border-bottom: none; }
+    .table-gap { margin-bottom: 24px; }
+
+    .warning {
+      padding: 16px 20px;
+      border: 1px solid rgba(180,79,255,0.2);
+      border-radius: 8px;
+      background: rgba(42,10,62,0.4);
+      color: var(--text-dim);
+      font-size: 0.78rem;
+      line-height: 1.7;
+      margin-bottom: 20px;
+      animation: fadeUp 0.6s 0.4s ease both;
+    }
+
+    .warning span { color: var(--purple); margin-right: 6px; }
+
+    footer {
+      margin-top: 8px;
+      text-align: center;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      letter-spacing: 2px;
+      animation: fadeUp 0.6s 0.5s ease both;
+    }
+
+    footer a { color: var(--text-dim); text-decoration: none; transition: color 0.2s; }
+    footer a:hover { color: var(--purple); }
+
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes flicker {
+      0%, 94%, 100% { opacity: 1; }
+      95%           { opacity: 0.5; }
+      96%           { opacity: 1; }
+      97%           { opacity: 0.3; }
+      98%           { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="hero">
+    <div class="logo">ESPJAMMER</div>
+    <div class="tagline">ESP32 Pentesting Tool Firmware</div>
+    <div class="version-badge">v1.0 — Web Flasher</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Flash Instructions</div>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-text">
+        <strong>Use Google Chrome or Microsoft Edge.</strong><br>
+        Web flashing uses WebSerial — Firefox does not support it.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-text">
+        <strong>Plug your ESP32 into your computer via USB.</strong><br>
+        Close Arduino IDE or any serial monitor first.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-text">
+        <strong>Click CONNECT below.</strong><br>
+        Select your ESP32 COM port when the browser prompts you.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-text">
+        <strong>Wait ~30 seconds</strong> for flashing to complete,<br>
+        then unplug and replug your ESP32.
+      </div>
+    </div>
+
+    <div class="flash-wrap">
+      <div class="no-serial" id="noSerial">
+        ⚠ WebSerial not supported. Please open this page in Chrome or Edge.
+      </div>
+      <esp-web-install-button manifest="firmware/manifest.json"></esp-web-install-button>
+      <div class="browser-note">Chrome / Edge only &nbsp;·&nbsp; ESP32 required</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Features</div>
+    <div class="features">
+      <div class="feature"><div class="dot"></div>OLED Menu UI</div>
+      <div class="feature"><div class="dot"></div>WiFi AP Scanner</div>
+      <div class="feature"><div class="dot"></div>Packet Sniffer</div>
+      <div class="feature"><div class="dot"></div>Beacon Spam</div>
+      <div class="feature"><div class="dot"></div>BLE Scanner</div>
+      <div class="feature"><div class="dot"></div>Apple BLE Spam</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Wiring</div>
+    <table class="table-gap">
+      <tr><th>OLED Pin</th><th>ESP32 Pin</th></tr>
+      <tr><td>VCC</td><td>3.3V</td></tr>
+      <tr><td>GND</td><td>GND</td></tr>
+      <tr><td>SDA</td><td>GPIO 21</td></tr>
+      <tr><td>SCL</td><td>GPIO 22</td></tr>
+    </table>
+    <br>
+    <table>
+      <tr><th>Button</th><th>GPIO</th></tr>
+      <tr><td>UP</td><td>12</td></tr>
+      <tr><td>DOWN</td><td>13</td></tr>
+      <tr><td>SELECT</td><td>14</td></tr>
+      <tr><td>BACK</td><td>27</td></tr>
+    </table>
+  </div>
+
+  <div class="warning">
+    <span>⚠</span> For authorized security research and educational use only.
+    Only use on networks and devices you own or have explicit written
+    permission to test. Unauthorized use may violate local laws.
+  </div>
+
+  <footer>
+    <a href="https://github.com/bra1n1ac-hack0">GitHub</a>
+    &nbsp;·&nbsp; MIT License &nbsp;·&nbsp; by @bra1n1ac_hack
+  </footer>
+
+</div>
+<script>
+  if (!('serial' in navigator)) {
+    document.getElementById('noSerial').style.display = 'block';
+  }
+</script>
+</body>
+</html>
