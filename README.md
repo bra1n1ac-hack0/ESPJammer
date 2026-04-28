@@ -36,11 +36,6 @@ Flash directly from your browser,  no installs needed:
 | SELECT | 14 |
 | BACK | 27 |
 
-## Build & Flash
-1. Install [PlatformIO](https://platformio.org/)
-2. Clone this repo
-3. Open in VS Code with PlatformIO extension
-4. Run `pio run --target upload`
 
 ## Legal
 For authorized security research and educational use only.
